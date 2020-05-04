@@ -22,8 +22,8 @@
 #include <KPluginFactory>
 
 K_PLUGIN_FACTORY_WITH_JSON(
-    MaterialDecorationFactory,
-    "material.json",
-    registerPlugin<Material::Decoration>(););
+    FluentDecorationFactory,
+    "fluent.json",
+    registerPlugin<Fluent::Decoration>(););
 
 #include "plugin.moc"

@@ -2,8 +2,8 @@
     "KPlugin": {
         "Description": "Window decoration",
         "EnabledByDefault": false,
-        "Id": "com.github.zzag.material",
-        "Name": "Material",
+        "Id": "com.github.ckissane.selenite",
+        "Name": "Selenite Fluent",
         "ServiceTypes": [
             "org.kde.kdecoration2"
         ]

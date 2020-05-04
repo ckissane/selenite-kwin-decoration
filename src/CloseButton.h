@@ -20,7 +20,7 @@
 // KDecoration
 #include <KDecoration2/DecorationButton>
 
-namespace Material
+namespace Fluent
 {
 
 class Decoration;
@@ -40,4 +40,4 @@ private:
     QColor foregroundColor() const;
 };
 
-} // namespace Material
+} // namespace Fluent

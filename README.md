@@ -1,8 +1,8 @@
 ![Demo](data/window.png)
 
-## material-decoration
+## selenite-kwin-decoration
 
-Material-ish window decoration theme for KWin.
+Fluent-ish window decoration theme for KWin.
 
 ### Installation
 

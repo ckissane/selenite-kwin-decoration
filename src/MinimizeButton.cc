@@ -28,13 +28,13 @@
 // Qt
 #include <QPainter>
 
-namespace Material
+namespace Fluent
 {
 
 MinimizeButton::MinimizeButton(Decoration *decoration, QObject *parent)
     : DecorationButton(KDecoration2::DecorationButtonType::Minimize, decoration, parent)
 {
-    auto *decoratedClient = decoration->client().data();
+    auto *decoratedClient = decoration->client().toStrongRef().data();
     connect(decoratedClient, &KDecoration2::DecoratedClient::minimizeableChanged,
             this, &MinimizeButton::setVisible);
 
@@ -114,4 +114,4 @@ QColor MinimizeButton::foregroundColor() const
     return deco->titleBarForegroundColor();
 }
 
-} // namespace Material
+} // namespace Fluent

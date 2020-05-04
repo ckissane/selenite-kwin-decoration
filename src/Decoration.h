@@ -24,7 +24,7 @@
 // Qt
 #include <QVariant>
 
-namespace Material
+namespace Fluent
 {
 
 class CloseButton;
@@ -69,4 +69,4 @@ private:
     friend class MinimizeButton;
 };
 
-} // namespace Material
+} // namespace Fluent
