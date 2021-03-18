@@ -21,6 +21,7 @@
 #include "CloseButton.h"
 #include "MaximizeButton.h"
 #include "MinimizeButton.h"
+#include "DecorationMagicButtonGroup.h"
 
 // KDecoration
 #include <KDecoration2/DecoratedClient>
@@ -29,6 +30,7 @@
 
 // Qt
 #include <QPainter>
+#include <QPainterPath>
 #include <QSharedPointer>
 
 namespace Fluent
@@ -70,8 +72,8 @@ struct CompositeShadowParams
 
 const CompositeShadowParams s_shadowParams = CompositeShadowParams(
     QPoint(0, 18),
-    ShadowParams(QPoint(0, 0), 64, 0.8),
-    ShadowParams(QPoint(0, -10), 24, 0.1)
+    ShadowParams(QPoint(0, 0), 64, 0.0),
+    ShadowParams(QPoint(0, -10), 24, 0.0)
 );
 
 } // anonymous namespace
@@ -80,9 +82,10 @@ static int s_decoCount = 0;
 static QColor s_shadowColor(0, 0, 0);
 static QSharedPointer<KDecoration2::DecorationShadow> s_cachedShadow;
 
-static qreal s_titleBarOpacityActive = 0.8;
-static qreal s_titleBarOpacityInactive = 0.8;
-
+static qreal s_titleBarOpacityActive = 0.6;
+static qreal s_titleBarOpacityInactive = 0.6;
+static qreal s_tbO = 0.43;
+static bool magic=true;
 Decoration::Decoration(QObject *parent, const QVariantList &args)
     : KDecoration2::Decoration(parent, args)
 {
@@ -152,12 +155,12 @@ void Decoration::init()
         }
     };
 
-    m_leftButtons = new KDecoration2::DecorationButtonGroup(
+    m_leftButtons = new KDecoration2G::DecorationMagicButtonGroup(
         KDecoration2::DecorationButtonGroup::Position::Left,
         this,
         buttonCreator);
 
-    m_rightButtons = new KDecoration2::DecorationButtonGroup(
+    m_rightButtons = new KDecoration2G::DecorationMagicButtonGroup(
         KDecoration2::DecorationButtonGroup::Position::Right,
         this,
         buttonCreator);
@@ -173,6 +176,7 @@ void Decoration::updateBorders()
 {
     QMargins borders;
     borders.setTop(titleBarHeight());
+    borders.setLeft(titleBarWidth());
     setBorders(borders);
 }
 
@@ -192,11 +196,26 @@ void Decoration::updateResizeBorders()
 void Decoration::updateTitleBar()
 {
     auto *decoratedClient = client().toStrongRef().data();
+    if(!magic){
     setTitleBar(QRect(0, 0, decoratedClient->width(), titleBarHeight()));
+    }else{
+        setTitleBar(QRect(0, 0, titleBarWidth(), decoratedClient->height()));
+    }
 }
 
 void Decoration::updateButtonsGeometry()
 {
+    if(magic){
+ if (!m_leftButtons->buttons().isEmpty()) {
+        m_leftButtons->setPos(QPointF(0, 0));
+        m_leftButtons->setSpacing(0);
+    }
+
+    if (!m_rightButtons->buttons().isEmpty()) {
+        m_rightButtons->setPos(QPointF(0,size().height() - m_rightButtons->geometry().height()));
+        m_rightButtons->setSpacing(0);
+    }
+    }else{
     if (!m_leftButtons->buttons().isEmpty()) {
         m_leftButtons->setPos(QPointF(0, 0));
         m_leftButtons->setSpacing(0);
@@ -206,7 +225,7 @@ void Decoration::updateButtonsGeometry()
         m_rightButtons->setPos(QPointF(size().width() - m_rightButtons->geometry().width(), 0));
         m_rightButtons->setSpacing(0);
     }
-
+    }
     update();
 }
 
@@ -284,9 +303,27 @@ void Decoration::updateShadow()
 
 int Decoration::titleBarHeight() const
 {
+    if(magic){
+        return 0;
+    }
     const QFontMetrics fontMetrics(settings()->font());
     const int baseUnit = settings()->gridUnit();
     return qRound(1.5 * baseUnit) + fontMetrics.height();
+}
+bool Decoration::titleBarVertical() const
+{
+    return magic;
+}
+
+int Decoration::titleBarWidth() const
+{
+    if(!magic){
+        return 0;
+    }
+    return 30;
+    // const QFontMetrics fontMetrics(settings()->font());
+    // const int baseUnit = settings()->gridUnit();
+    // return qRound(1.5 * baseUnit) + fontMetrics.height();
 }
 
 void Decoration::paintFrameBackground(QPainter *painter, const QRect &repaintRegion) const
@@ -305,7 +342,15 @@ void Decoration::paintFrameBackground(QPainter *painter, const QRect &repaintReg
             ? KDecoration2::ColorGroup::Active
             : KDecoration2::ColorGroup::Inactive,
         KDecoration2::ColorRole::Frame));
+    // QPainterPath path;
+    // path.addRoundedRect(QRectF(0, borderTop(), size().width(), size().height() - borderTop()), 32,32);
+    if(!magic){
     painter->setClipRect(0, borderTop(), size().width(), size().height() - borderTop(), Qt::IntersectClip);
+    }else{
+
+    painter->setClipRect( borderLeft(),borderTop(), size().width()- borderLeft(), size().height() - borderTop(), Qt::IntersectClip);
+    }
+    // painter->setClipPath(path, Qt::IntersectClip);
     painter->drawRect(rect());
 
     painter->restore();
@@ -314,14 +359,17 @@ void Decoration::paintFrameBackground(QPainter *painter, const QRect &repaintReg
 QColor Decoration::titleBarBackgroundColor() const
 {
     const auto *decoratedClient = client().toStrongRef().data();
-    const auto group = decoratedClient->isActive()
-        ? KDecoration2::ColorGroup::Active
-        : KDecoration2::ColorGroup::Inactive;
+    // const auto group = decoratedClient->isActive()
+    //     ? KDecoration2::ColorGroup::Active
+    //     : KDecoration2::ColorGroup::Inactive;
     const qreal opacity = decoratedClient->isActive()
         ? s_titleBarOpacityActive
         : s_titleBarOpacityInactive;
-    QColor color = decoratedClient->color(group, KDecoration2::ColorRole::TitleBar);
-    color.setAlphaF(opacity);
+    // QColor color = decoratedClient->color(group, KDecoration2::ColorRole::TitleBar);
+    // QColor color(33,33,33);
+    QColor color(16,16,16);
+    // color.set(22,22,22);
+    color.setAlphaF(1.0-(1.0-s_tbO)*(1.0-opacity));
     return color;
 }
 
@@ -343,54 +391,67 @@ void Decoration::paintTitleBarBackground(QPainter *painter, const QRect &repaint
     painter->save();
     painter->setPen(Qt::NoPen);
     painter->setBrush(titleBarBackgroundColor());
-    painter->drawRect(QRect(0, 0, decoratedClient->width(), titleBarHeight()));
+    if(magic){
+painter->drawRect(QRect(0, 0, titleBarWidth(),decoratedClient->height()));
+    }else{
+        painter->drawRect(QRect(0, 0, decoratedClient->width(), titleBarHeight()));
+    }
+    
     painter->restore();
 }
 
 void Decoration::paintCaption(QPainter *painter, const QRect &repaintRegion) const
 {
+    Q_UNUSED(painter)
     Q_UNUSED(repaintRegion)
 
-    const auto *decoratedClient = client().toStrongRef().data();
+    // const auto *decoratedClient = client().toStrongRef().data();
 
-    const int textWidth = settings()->fontMetrics().boundingRect(decoratedClient->caption()).width();
-    const QRect textRect((size().width() - textWidth) / 2, 0, textWidth, titleBarHeight());
+    // const int textWidth = settings()->fontMetrics().boundingRect(decoratedClient->caption()).width();
+    // const QRect textRect((size().width() - textWidth) / 2, 0, textWidth, titleBarHeight());
 
-    const QRect titleBarRect(0, 0, size().width(), titleBarHeight());
+    // const QRect titleBarRect(0, 0, size().width(), titleBarHeight());
 
-    const QRect availableRect = titleBarRect.adjusted(
-        m_leftButtons->geometry().width() + settings()->smallSpacing(), 0,
-        -(m_rightButtons->geometry().width() + settings()->smallSpacing()), 0
-    );
+    // const QRect availableRect = titleBarRect.adjusted(
+    //     m_leftButtons->geometry().width() + settings()->smallSpacing(), 0,
+    //     -(m_rightButtons->geometry().width() + settings()->smallSpacing()), 0
+    // );
 
-    QRect captionRect;
-    Qt::Alignment alignment;
+    // QRect captionRect;
+    // Qt::Alignment alignment;
 
-    if (textRect.left() < availableRect.left()) {
-        captionRect = availableRect;
-        alignment = Qt::AlignLeft | Qt::AlignVCenter;
-    } else if (availableRect.right() < textRect.right()) {
-        captionRect = availableRect;
-        alignment = Qt::AlignRight | Qt::AlignVCenter;
-    } else {
-        captionRect = titleBarRect;
-        alignment = Qt::AlignCenter;
-    }
+    // if (textRect.left() < availableRect.left()) {
+    //     captionRect = availableRect;
+    //     alignment = Qt::AlignLeft | Qt::AlignVCenter;
+    // } else if (availableRect.right() < textRect.right()) {
+    //     captionRect = availableRect;
+    //     alignment = Qt::AlignRight | Qt::AlignVCenter;
+    // } else {
+    //     captionRect = titleBarRect;
+    //     alignment = Qt::AlignCenter;
+    // }
 
-    const QString caption = painter->fontMetrics().elidedText(
-        decoratedClient->caption(), Qt::ElideMiddle, captionRect.width());
+    // const QString caption = painter->fontMetrics().elidedText(
+    //     decoratedClient->caption(), Qt::ElideMiddle, captionRect.width());
 
-    painter->save();
-    painter->setFont(settings()->font());
-    painter->setPen(titleBarForegroundColor());
-    painter->drawText(captionRect, alignment, caption);
-    painter->restore();
+    // painter->save();
+    // painter->setFont(settings()->font());
+    // painter->setPen(titleBarForegroundColor());
+    // painter->drawText(captionRect, alignment, caption);
+    // painter->restore();
 }
 
 void Decoration::paintButtons(QPainter *painter, const QRect &repaintRegion) const
 {
+    //  const auto *decoratedClient = client().toStrongRef().data();
     m_leftButtons->paint(painter, repaintRegion);
     m_rightButtons->paint(painter, repaintRegion);
+    // if(magic){
+    //     m_leftButtons->paint(painter, 
+    //     QRect(0, 0, titleBarWidth(),decoratedClient->height()));
+    // m_rightButtons->paint(painter, 
+    //     QRect(0, 0, titleBarWidth(),decoratedClient->height()));
+    // }
 }
 
 } // namespace Fluent

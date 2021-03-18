@@ -16,6 +16,7 @@ set (decoration_SRCS
     BoxShadowHelper.cc
     CloseButton.cc
     Decoration.cc
+    DecorationMagicButtonGroup.cc
     MaximizeButton.cc
     MinimizeButton.cc
     plugin.cc

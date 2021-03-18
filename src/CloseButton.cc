@@ -40,8 +40,8 @@ CloseButton::CloseButton(Decoration *decoration, QObject *parent)
             update();
         });
 
-    const int titleBarHeight = decoration->titleBarHeight();
-    const QSize size(qRound(titleBarHeight * 1.33), titleBarHeight);
+    const int titleBarHeight = decoration->titleBarVertical()?decoration->titleBarWidth():decoration->titleBarHeight();
+    const QSize size(decoration->titleBarVertical()?titleBarHeight:qRound(titleBarHeight * 1.33), decoration->titleBarVertical()?qRound(titleBarHeight * 1.33):titleBarHeight);
     setGeometry(QRect(QPoint(0, 0), size));
     setVisible(decoratedClient->isCloseable());
 }

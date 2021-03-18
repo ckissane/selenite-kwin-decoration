@@ -18,6 +18,7 @@
 #pragma once
 
 // KDecoration
+#include "DecorationMagicButtonGroup.h"
 #include <KDecoration2/Decoration>
 #include <KDecoration2/DecorationButtonGroup>
 
@@ -52,6 +53,8 @@ private:
     void updateShadow();
 
     int titleBarHeight() const;
+    int titleBarWidth() const;
+    bool titleBarVertical() const;
 
     QColor titleBarBackgroundColor() const;
     QColor titleBarForegroundColor() const;
@@ -61,8 +64,8 @@ private:
     void paintCaption(QPainter *painter, const QRect &repaintRegion) const;
     void paintButtons(QPainter *painter, const QRect &repaintRegion) const;
 
-    KDecoration2::DecorationButtonGroup *m_leftButtons;
-    KDecoration2::DecorationButtonGroup *m_rightButtons;
+    KDecoration2G::DecorationMagicButtonGroup *m_leftButtons;
+    KDecoration2G::DecorationMagicButtonGroup *m_rightButtons;
 
     friend class CloseButton;
     friend class MaximizeButton;
