@@ -279,7 +279,7 @@ void Decoration::updateShadow()
     const QRect innerRect = rect - padding;
     
     // Draw outline.
-    QPen outLine (QColor(127,127,127));
+    QPen outLine (QColor(100,100,100));
     outLine.setWidth(2);
     outLine.setJoinStyle(Qt::MiterJoin);
     painter.setPen(outLine);
