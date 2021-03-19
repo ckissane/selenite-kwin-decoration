@@ -279,7 +279,7 @@ void Decoration::updateShadow()
     const QRect innerRect = rect - padding;
     
     // Draw outline.
-    QPen outLine (QColor(100,100,100));
+    QPen outLine (QColor(127,127,127));
     outLine.setWidth(2);
     outLine.setJoinStyle(Qt::MiterJoin);
     painter.setPen(outLine);
@@ -308,7 +308,7 @@ int Decoration::titleBarHeight() const
     }
     const QFontMetrics fontMetrics(settings()->font());
     const int baseUnit = settings()->gridUnit();
-    return qRound(1.5 * baseUnit) + fontMetrics.height();
+    return qRound(0.5 * baseUnit) + fontMetrics.height();
 }
 bool Decoration::titleBarVertical() const
 {
@@ -320,7 +320,11 @@ int Decoration::titleBarWidth() const
     if(!magic){
         return 0;
     }
-    return 30;
+    const QFontMetrics fontMetrics(settings()->font());
+    const int baseUnit = settings()->gridUnit();
+    const int h=qRound(0.5 * baseUnit) + fontMetrics.height();
+    return h+1;
+    // return 30;
     // const QFontMetrics fontMetrics(settings()->font());
     // const int baseUnit = settings()->gridUnit();
     // return qRound(1.5 * baseUnit) + fontMetrics.height();
@@ -402,43 +406,44 @@ painter->drawRect(QRect(0, 0, titleBarWidth(),decoratedClient->height()));
 
 void Decoration::paintCaption(QPainter *painter, const QRect &repaintRegion) const
 {
-    Q_UNUSED(painter)
+    // Q_UNUSED(painter)
     Q_UNUSED(repaintRegion)
+if(!magic){
+    const auto *decoratedClient = client().toStrongRef().data();
 
-    // const auto *decoratedClient = client().toStrongRef().data();
+    const int textWidth = settings()->fontMetrics().boundingRect(decoratedClient->caption()).width();
+    const QRect textRect((size().width() - textWidth) / 2, 0, textWidth, titleBarHeight());
 
-    // const int textWidth = settings()->fontMetrics().boundingRect(decoratedClient->caption()).width();
-    // const QRect textRect((size().width() - textWidth) / 2, 0, textWidth, titleBarHeight());
+    const QRect titleBarRect(0, 0, size().width(), titleBarHeight());
 
-    // const QRect titleBarRect(0, 0, size().width(), titleBarHeight());
+    const QRect availableRect = titleBarRect.adjusted(
+        m_leftButtons->geometry().width() + settings()->smallSpacing(), 0,
+        -(m_rightButtons->geometry().width() + settings()->smallSpacing()), 0
+    );
 
-    // const QRect availableRect = titleBarRect.adjusted(
-    //     m_leftButtons->geometry().width() + settings()->smallSpacing(), 0,
-    //     -(m_rightButtons->geometry().width() + settings()->smallSpacing()), 0
-    // );
+    QRect captionRect;
+    Qt::Alignment alignment;
 
-    // QRect captionRect;
-    // Qt::Alignment alignment;
+    if (textRect.left() < availableRect.left()) {
+        captionRect = availableRect;
+        alignment = Qt::AlignLeft | Qt::AlignVCenter;
+    } else if (availableRect.right() < textRect.right()) {
+        captionRect = availableRect;
+        alignment = Qt::AlignRight | Qt::AlignVCenter;
+    } else {
+        captionRect = titleBarRect;
+        alignment = Qt::AlignCenter;
+    }
 
-    // if (textRect.left() < availableRect.left()) {
-    //     captionRect = availableRect;
-    //     alignment = Qt::AlignLeft | Qt::AlignVCenter;
-    // } else if (availableRect.right() < textRect.right()) {
-    //     captionRect = availableRect;
-    //     alignment = Qt::AlignRight | Qt::AlignVCenter;
-    // } else {
-    //     captionRect = titleBarRect;
-    //     alignment = Qt::AlignCenter;
-    // }
+    const QString caption = painter->fontMetrics().elidedText(
+        decoratedClient->caption(), Qt::ElideMiddle, captionRect.width());
 
-    // const QString caption = painter->fontMetrics().elidedText(
-    //     decoratedClient->caption(), Qt::ElideMiddle, captionRect.width());
-
-    // painter->save();
-    // painter->setFont(settings()->font());
-    // painter->setPen(titleBarForegroundColor());
-    // painter->drawText(captionRect, alignment, caption);
-    // painter->restore();
+    painter->save();
+    painter->setFont(settings()->font());
+    painter->setPen(titleBarForegroundColor());
+    painter->drawText(captionRect, alignment, caption);
+    painter->restore();
+}
 }
 
 void Decoration::paintButtons(QPainter *painter, const QRect &repaintRegion) const

@@ -43,8 +43,9 @@ MaximizeButton::MaximizeButton(Decoration *decoration, QObject *parent)
             update();
         });
 
-    const int titleBarHeight = decoration->titleBarVertical()?decoration->titleBarWidth():decoration->titleBarHeight();
-    const QSize size(decoration->titleBarVertical()?titleBarHeight:qRound(titleBarHeight * 1.33), decoration->titleBarVertical()?qRound(titleBarHeight * 1.33):titleBarHeight);
+    const int titleBarThin = decoration->titleBarVertical()?decoration->titleBarWidth():decoration->titleBarHeight();
+    const int titleBarWide=qRound(titleBarThin * 1.33)+(titleBarThin-qRound(titleBarThin * 1.33))%2;
+    const QSize size(decoration->titleBarVertical()?titleBarThin:titleBarWide, decoration->titleBarVertical()?titleBarWide:titleBarThin);
     setGeometry(QRect(QPoint(0, 0), size));
     setVisible(decoratedClient->isMaximizeable());
 }
@@ -58,7 +59,9 @@ void MaximizeButton::paint(QPainter *painter, const QRect &repaintRegion)
     Q_UNUSED(repaintRegion)
 
     const QRectF buttonRect = geometry();
-    QRectF maximizeRect = QRectF(0, 0, 10, 10);
+    int sz=buttonRect.width()>buttonRect.height()?buttonRect.height():buttonRect.width();
+    sz=sz/3;
+    QRectF maximizeRect = QRectF(0, 0, sz,sz);
     maximizeRect.moveCenter(buttonRect.center().toPoint());
 
     painter->save();

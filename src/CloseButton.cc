@@ -40,8 +40,9 @@ CloseButton::CloseButton(Decoration *decoration, QObject *parent)
             update();
         });
 
-    const int titleBarHeight = decoration->titleBarVertical()?decoration->titleBarWidth():decoration->titleBarHeight();
-    const QSize size(decoration->titleBarVertical()?titleBarHeight:qRound(titleBarHeight * 1.33), decoration->titleBarVertical()?qRound(titleBarHeight * 1.33):titleBarHeight);
+    const int titleBarThin = decoration->titleBarVertical()?decoration->titleBarWidth():decoration->titleBarHeight();
+    const int titleBarWide=qRound(titleBarThin * 1.33)+(titleBarThin-qRound(titleBarThin * 1.33))%2;
+    const QSize size(decoration->titleBarVertical()?titleBarThin:titleBarWide, decoration->titleBarVertical()?titleBarWide:titleBarThin);
     setGeometry(QRect(QPoint(0, 0), size));
     setVisible(decoratedClient->isCloseable());
 }
@@ -55,8 +56,16 @@ void CloseButton::paint(QPainter *painter, const QRect &repaintRegion)
     Q_UNUSED(repaintRegion)
 
     const QRectF buttonRect = geometry();
-    QRectF crossRect = QRectF(0, 0, 10, 10);
-    crossRect.moveCenter(buttonRect.center().toPoint());
+    int sz=buttonRect.width()>buttonRect.height()?buttonRect.height():buttonRect.width();
+   
+    if((sz-qRound(sz/3.0))%2==0){
+         sz=qRound(sz/3.0);
+    }else{
+         sz=qRound(sz/3.0)-1;
+    }
+    QRectF crossRect = QRectF(0, 0, sz,sz);
+    QPoint center=buttonRect.center().toPoint();
+    // crossRect.moveCenter(center);
 
     painter->save();
 
@@ -70,8 +79,8 @@ void CloseButton::paint(QPainter *painter, const QRect &repaintRegion)
     // Foreground.
     painter->setPen(foregroundColor());
     painter->setBrush(Qt::NoBrush);
-    painter->drawLine(crossRect.topLeft(), crossRect.bottomRight());
-    painter->drawLine(crossRect.topRight(), crossRect.bottomLeft());
+    painter->drawLine(crossRect.topLeft()+center-QPoint(sz/2,sz/2), crossRect.topLeft()+QPoint(sz/2,sz/2)+center);
+    painter->drawLine(crossRect.topLeft()+QPoint(-sz/2,sz/2)+center, crossRect.topLeft()+QPoint(sz/2,-sz/2)+center);
 
     painter->restore();
 }
